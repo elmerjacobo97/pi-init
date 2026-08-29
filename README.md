@@ -1,37 +1,175 @@
 # pi-init
 
-A universal `/init` command for [Pi](https://pi.dev) that creates or updates a high-signal `AGENTS.md` for your repository.
+A project bootstrap and validation toolkit for [Pi](https://pi.dev).
 
-Inspired by the initialization workflows used by coding agents such as OpenCode and Claude Code.
+`pi-init` adds commands that help Pi understand, maintain, diagnose, and validate a repository without relying on generic assumptions.
 
-## What it does
+## Commands
 
-Running:
+### `/init`
+
+Create or improve `AGENTS.md` for the current repository.
 
 ```text
 /init
 ```
 
-asks Pi to inspect the current repository and create or improve its `AGENTS.md`.
+You can also provide additional focus:
 
-The generated instructions focus on information that future coding agents would otherwise have difficulty discovering, such as:
+```text
+/init focus on architecture
+```
 
-- Non-obvious development commands
-- Monorepo and package boundaries
-- Application and library entrypoints
-- Build, lint, type-check, and test workflows
-- How to run focused tests or packages
-- Code generation and migration workflows
-- Environment and local service requirements
-- Repository-specific conventions
-- Testing quirks and prerequisites
-- Architectural constraints and operational gotchas
+The generated `AGENTS.md` is intentionally compact and high-signal.
 
 The guiding principle is:
 
 > Would an agent likely miss this without help?
 
 If not, it should not be included.
+
+---
+
+### `/init update`
+
+Update an existing `AGENTS.md` using the current repository as the source of truth.
+
+```text
+/init update
+```
+
+You can provide additional focus:
+
+```text
+/init update focus on testing workflows
+```
+
+Update mode preserves useful human-written guidance while checking for:
+
+- stale commands
+- outdated architecture notes
+- duplicated guidance
+- obsolete workflows
+- missing high-signal instructions
+- repository changes that affect future coding sessions
+
+It does not blindly rewrite `AGENTS.md`.
+
+---
+
+### `/init check`
+
+Audit `AGENTS.md` against the current repository without modifying anything.
+
+```text
+/init check
+```
+
+You can also focus the audit:
+
+```text
+/init check focus on monorepo boundaries
+```
+
+The command returns one of:
+
+```text
+UP TO DATE
+NEEDS UPDATE
+UNABLE TO VERIFY
+```
+
+If changes are needed, it recommends running:
+
+```text
+/init update
+```
+
+`/init check` is read-only.
+
+---
+
+### `/doctor`
+
+Diagnose the repository's development setup and workflows.
+
+```text
+/doctor
+```
+
+Optional focus:
+
+```text
+/doctor focus on local setup
+```
+
+It can inspect:
+
+- package manager and manifests
+- runtime and language versions
+- workspace or monorepo configuration
+- development scripts
+- build configuration
+- linting and formatting
+- type-checking
+- testing
+- code generation
+- migrations
+- environment requirements
+- required local services
+- Docker configuration
+- CI/CD workflows
+- pre-commit hooks
+- task runners
+
+`/doctor` does not modify files or install dependencies.
+
+---
+
+### `/validate`
+
+Run the validation checks that already exist in the repository.
+
+```text
+/validate
+```
+
+Optional focus:
+
+```text
+/validate focus on registry package
+```
+
+`pi-init` first determines which validation commands actually exist.
+
+Typical checks may include:
+
+```text
+lint
+typecheck
+test
+build
+```
+
+If CI defines an explicit validation order, that order is preferred.
+
+Otherwise, the default preference is:
+
+```text
+lint -> typecheck -> test -> build
+```
+
+Checks that do not exist are skipped.
+
+The final result is one of:
+
+```text
+VALID
+VALIDATION FAILED
+PARTIALLY VALIDATED
+```
+
+`/validate` does not automatically fix errors or modify project files.
 
 ## Installation
 
@@ -41,92 +179,196 @@ Install directly from GitHub:
 pi install git:github.com/elmerjacobo97/pi-init
 ```
 
-Then start Pi inside any repository:
+Then start Pi inside a repository:
 
 ```bash
 pi
 ```
 
-and run:
+The following commands will be available:
 
 ```text
 /init
+/doctor
+/validate
 ```
 
-## Usage
-
-### Initialize a repository
+`update` and `check` are modes of `/init`, so they are used as:
 
 ```text
-/init
+/init update
+/init check
 ```
 
-Pi will inspect the repository and create or update:
+## Updating
+
+If you already installed `pi-init` and a newer version is available:
+
+```bash
+pi update --extensions
+```
+
+If Pi is already running, reload extensions:
+
+```text
+/reload
+```
+
+## How it works
+
+`pi-init` is implemented as a set of Pi extensions.
+
+The package currently provides:
+
+```text
+extensions/
+├── init.ts
+├── doctor.ts
+└── validate.ts
+```
+
+Each extension registers a command using Pi's extension API.
+
+For example:
+
+```ts
+pi.registerCommand('init', {
+  // ...
+});
+```
+
+When a command is executed, the extension sends a specialized prompt to the active Pi session.
+
+Pi then uses its normal repository tools to inspect the project and perform the requested task.
+
+## Repository investigation
+
+The commands prefer high-value sources first, including:
+
+- README and project documentation
+- dependency manifests
+- lockfiles
+- workspace configuration
+- build configuration
+- lint and formatter configuration
+- type-check configuration
+- test configuration
+- CI/CD workflows
+- task runner configuration
+- environment examples
+- existing agent instruction files
+- representative source files when necessary
+
+Executable sources of truth are preferred over prose.
+
+If documentation conflicts with scripts, configuration, CI, or actual code behavior, the executable source is preferred.
+
+The extension is designed to be ecosystem-agnostic and does not assume a specific language, framework, or package manager.
+
+## Supported repository types
+
+`pi-init` is designed to work across different ecosystems, including:
+
+```text
+JavaScript / TypeScript
+React
+Vue
+Svelte
+Node.js
+NestJS
+React Native
+Flutter
+PHP / Laravel
+Python
+Go
+Rust
+Java / Kotlin
+Swift
+monorepos
+libraries
+CLIs
+backend services
+frontend applications
+mobile applications
+```
+
+Support is based on repository evidence rather than hardcoded framework assumptions.
+
+## AGENTS.md philosophy
+
+`pi-init` tries to keep `AGENTS.md` focused on information that materially affects an agent's work.
+
+Good content includes:
+
+- non-obvious commands
+- focused test commands
+- package boundaries
+- architecture constraints
+- generated code workflows
+- migrations
+- environment quirks
+- testing prerequisites
+- required local services
+- CI-specific behavior
+- project-specific conventions
+
+It avoids:
+
+- generic software advice
+- framework tutorials
+- exhaustive directory trees
+- obvious language conventions
+- speculative claims
+- information easily discovered from a filename
+- duplicated documentation
+
+## Existing instructions
+
+If `AGENTS.md` already exists, `/init` and `/init update` attempt to preserve useful human-written guidance.
+
+Other instruction files may also be used as context when present, including:
+
+```text
+CLAUDE.md
+.cursor/rules/
+.cursorrules
+.github/copilot-instructions.md
+```
+
+`pi-init` does not modify those files.
+
+## Safety
+
+The commands are designed with conservative defaults.
+
+### `/init`
+
+May modify:
 
 ```text
 AGENTS.md
 ```
 
-in the repository root.
+It should not modify unrelated project files.
 
-### Provide additional focus
+### `/init check`
 
-You can pass additional instructions:
+Read-only.
 
-```text
-/init Pay special attention to monorepo boundaries
-```
+### `/doctor`
 
-or:
+Read-only diagnostic workflow.
 
-```text
-/init Focus on testing and validation workflows
-```
+### `/validate`
 
-These instructions are added to the initialization analysis.
+May execute existing validation commands but should not:
 
-## How it works
-
-`pi-init` registers a custom Pi command using the extension API.
-
-When `/init` is executed, it asks the active Pi agent to investigate the repository using high-value sources first, including:
-
-- README and project documentation
-- Package manifests and lockfiles
-- Workspace and monorepo configuration
-- Build and compiler configuration
-- Linting and formatting configuration
-- Testing configuration
-- CI/CD workflows
-- Environment configuration
-- Existing agent instructions
-- Representative source files when necessary
-
-It prefers executable sources of truth such as scripts, configuration, CI, and actual code over potentially outdated documentation.
-
-The extension does not assume a particular language, framework, package manager, or repository structure.
-
-## Existing AGENTS.md
-
-If an `AGENTS.md` already exists, `/init` improves it in place instead of blindly replacing it.
-
-It attempts to:
-
-- Preserve useful human-written instructions
-- Preserve intentional project rules
-- Remove unnecessary duplication
-- Reconcile stale information with the current repository
-- Keep the document concise and high-signal
-
-## Safety
-
-`/init` instructs Pi to:
-
-- Only modify `AGENTS.md`
-- Never invent project conventions
-- Never install dependencies
-- Never run destructive commands
-- Never make unrelated code changes
+- install dependencies
+- modify source files
+- change configuration
+- run automatic fix commands
+- commit changes
+- run destructive commands
 
 ## Development
 
@@ -143,10 +385,27 @@ Install dependencies:
 pnpm install
 ```
 
-The extension lives at:
+Run type checking:
+
+```bash
+pnpm typecheck
+```
+
+## Project structure
 
 ```text
-extensions/init.ts
+pi-init/
+├── extensions/
+│   ├── init.ts
+│   ├── doctor.ts
+│   └── validate.ts
+├── .gitignore
+├── LICENSE
+├── README.md
+├── package.json
+├── pnpm-lock.yaml
+├── pnpm-workspace.yaml
+└── tsconfig.json
 ```
 
 ## Requirements
