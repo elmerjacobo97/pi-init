@@ -1,0 +1,44 @@
+{
+  "name": "pi-init",
+  "version": "0.1.0",
+  "description": "Universal /init command for Pi that creates or updates high-signal AGENTS.md instructions",
+  "type": "module",
+  "license": "MIT",
+  "author": "Elmer Jacobo",
+  "keywords": [
+    "pi-package",
+    "pi",
+    "pi-coding-agent",
+    "extension",
+    "agents-md",
+    "coding-agent"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elmerjacobo97/pi-init.git"
+  },
+  "bugs": {
+    "url": "https://github.com/elmerjacobo97/pi-init/issues"
+  },
+  "homepage": "https://github.com/elmerjacobo97/pi-init#readme",
+  "files": [
+    "extensions",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions/init.ts"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^0.84.4",
+    "typescript": "^5.9.0"
+  }
+}
