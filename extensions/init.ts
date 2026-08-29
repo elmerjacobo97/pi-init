@@ -2,7 +2,7 @@ import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 
 export default function (pi: ExtensionAPI) {
   pi.registerCommand('init', {
-    description: 'Create or update AGENTS.md for this repository',
+    description: 'Create or update AGENTS.md. Usage: /init [update] [focus]',
 
     handler: async (args, ctx) => {
       if (!ctx.isIdle()) {
