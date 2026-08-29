@@ -2,7 +2,7 @@ import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 
 export default function (pi: ExtensionAPI) {
   pi.registerCommand('doctor', {
-    description: 'Diagnose the current repository setup and workflows',
+    description: 'Diagnose repository setup and workflows. Usage: /doctor [focus]',
 
     handler: async (args, ctx) => {
       if (!ctx.isIdle()) {
@@ -15,18 +15,25 @@ export default function (pi: ExtensionAPI) {
       const prompt = `
 Diagnose the current repository.
 
+This is a diagnostic task.
+
 Do not modify files.
-
 Do not install dependencies.
+Do not attempt to fix anything.
+Do not run destructive commands.
 
-Do not attempt to fix anything unless the user explicitly asks later.
+Inspect only the repository sources necessary to understand its actual
+development setup.
 
-Inspect the repository and determine its actual development setup.
+## Investigate
 
 Check relevant evidence for:
 
-- package manager and dependency manifests
-- runtime or language versions
+- repository type
+- languages and frameworks
+- package manager
+- dependency manifests
+- runtime and language versions
 - workspace or monorepo configuration
 - development scripts
 - build scripts
@@ -44,41 +51,62 @@ Check relevant evidence for:
 - task runners
 - existing agent instructions
 
+Prefer executable sources of truth over prose.
+
+If documentation conflicts with scripts, config, CI, or actual code,
+trust the executable source.
+
+## Diagnose
+
 Identify:
 
 1. Repository type and stack
 2. Expected setup workflow
-3. Important commands
+3. Important developer commands
 4. Missing or suspicious configuration
 5. Broken or inconsistent scripts
 6. Version mismatches
 7. Missing environment prerequisites
-8. Test or build prerequisites
-9. CI/local workflow mismatches
-10. Any likely setup problem visible from repository evidence
-
-Prefer executable sources of truth over documentation.
+8. Test prerequisites
+9. Build prerequisites
+10. CI versus local workflow mismatches
+11. Likely setup problems visible from repository evidence
 
 Do not speculate.
 
-If you cannot verify a problem, label it as uncertain instead of presenting
-it as a confirmed issue.
-
-Do not run destructive commands.
+If something cannot be verified, mark it as uncertain.
 
 You may run safe read-only or diagnostic commands when useful.
 
-Return a concise report with:
+## Report
+
+Return a concise report.
+
+Use sections only when relevant:
 
 ## Environment
+## Setup
 ## Commands
 ## Findings
 ## Warnings
 ## Recommended next checks
 
-Only include sections that are useful.
+Clearly distinguish:
 
-${extraInstructions ? `Additional focus:\n${extraInstructions}` : ''}
+- confirmed problems
+- potential problems
+- missing information
+- healthy configuration
+
+Do not make changes.
+
+${
+  extraInstructions
+    ? `## Additional focus
+
+${extraInstructions}`
+    : ''
+}
 `.trim();
 
       pi.sendUserMessage(prompt);

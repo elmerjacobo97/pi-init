@@ -2,7 +2,7 @@ import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 
 export default function (pi: ExtensionAPI) {
   pi.registerCommand('validate', {
-    description: "Run the repository's existing validation checks",
+    description: 'Run existing repository validation checks. Usage: /validate [focus]',
 
     handler: async (args, ctx) => {
       if (!ctx.isIdle()) {
@@ -16,41 +16,40 @@ export default function (pi: ExtensionAPI) {
 Validate the current repository using only validation commands that already
 exist in the project.
 
-First inspect the repository to determine:
+## First inspect
+
+Determine from repository evidence:
 
 - package manager
+- repository or workspace structure
 - scripts
-- workspace structure
 - lint commands
+- formatting checks
 - type-check commands
 - test commands
 - build commands
+- code generation checks
 - CI validation order
 - package-specific validation commands
 
-Prefer scripts and CI configuration as sources of truth.
+Prefer package scripts, task runners, and CI configuration as sources
+of truth.
 
-Then run only the checks that are appropriate and already supported by the
-repository.
+Do not invent commands.
+
+## Execute
+
+Run only checks that are already supported by the repository.
 
 Typical checks may include:
 
 - lint
+- format check
 - typecheck
 - tests
 - build
 
-Do not invent commands.
-
-Do not install dependencies.
-
-Do not change configuration.
-
-Do not modify source files.
-
-Do not automatically fix lint or formatting errors.
-
-Do not run destructive commands.
+Skip checks that do not exist.
 
 If CI defines an explicit validation order, follow it.
 
@@ -58,32 +57,62 @@ If no explicit order exists, prefer:
 
 lint -> typecheck -> test -> build
 
-Skip checks that do not exist.
-
 For monorepos:
 
-- use root-level validation when available
-- otherwise use the repository's existing workspace/filter commands
+- prefer root-level validation when available
+- otherwise use the repository's existing workspace or filter commands
+- do not invent package selectors
 - do not validate unrelated external directories
+
+If the repository supports focused validation, prefer the narrowest
+appropriate command when the user provided a focus.
+
+## Failure behavior
 
 If a command fails:
 
-- stop if continuing would make later checks meaningless
-- otherwise continue when independent checks can still provide useful signal
+- capture the actual failure
+- do not automatically fix it
+- stop if later checks depend on the failed step
+- continue with independent checks when useful
 
-At the end, report:
+Clearly distinguish validation failures from unavailable checks.
+
+## Safety
+
+- Do not install dependencies.
+- Do not modify configuration.
+- Do not modify source files.
+- Do not run automatic fix commands.
+- Do not run destructive commands.
+- Do not alter generated files.
+- Do not commit anything.
+
+## Report
+
+Return:
 
 ## Validation summary
 
 For each check include:
 
 - command executed
-- result: passed / failed / skipped
-- short explanation for failures
+- result: PASSED / FAILED / SKIPPED
+- short explanation when failed or skipped
 
-Clearly distinguish actual failures from checks that were unavailable.
+End with one overall result:
 
-${extraInstructions ? `Additional focus:\n${extraInstructions}` : ''}
+- VALID
+- VALIDATION FAILED
+- PARTIALLY VALIDATED
+
+${
+  extraInstructions
+    ? `## Additional focus
+
+${extraInstructions}`
+    : ''
+}
 `.trim();
 
       pi.sendUserMessage(prompt);
